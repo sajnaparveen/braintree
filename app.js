@@ -31,6 +31,60 @@ if(err){
     return res.status(500).json({status:failed,Message:error.Message})
 }
 })
+//sale transcation
+app.post("/saletransaction",async(req,res)=>{
+    try{
+
+const paymentData=gateway.transaction.sale({
+   amount:req.body.amount,
+   paymentMethodNounce:req.body.paymentMethodNounce,
+   deviceData:req.body.deviceData,
+options:{
+    submitForSettlement:true
+}
+},(err,resData)=>{
+    if(resData.success){
+        return res.status(200).json({"status":success,message:resData.transaction})
+}else{
+    return res.send({err:err})
+}
+})
+    }catch(error){
+        return res.status(500).json({status:failed,Message:error.Message})
+
+    }
+})
+//partial settlement
+app.post("/refundwithcharge",async(req,res)=>{
+    try{
+const paymentData=gateway.transaction.submitForPartialSettlement(
+    "transaction_id",
+    "cancellation_fee",
+    (err,resData)=>{
+        if(resData.success){
+            return res.status(200).json({"status":success,message:resData.transaction}) 
+        }else{
+            return res.send({err:err})      
+        }
+    }
+)
+    }catch(error){
+        return res.status(500).json({status:failed,Message:error.Message})
+
+    }
+})
+
+//full settlement
+app.post("/refundwithoutcharge",(req,res)=>{
+    try{
+        const paymentData=gateway.transaction.submitForSettlement(
+            "transaction_id",(err,resData)
+        )
+    }catch(error){
+        return res.status(500).json({status:failed,Message:error.Message})
+
+    }
+})
 
 app.listen(process.env.port,()=>{
     console.log(`${process.env.HOST}${process.env.port}`)
